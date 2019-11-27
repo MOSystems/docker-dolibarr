@@ -1,0 +1,4 @@
+#!/bin/bash -x
+git submodule update --init
+export DOLIBARR_VERSION=$(git -C vendor/dolibarr tag -l --points-at HEAD)
+cat Dockerfile Dockerfile.debug > Dockerfile.debug
