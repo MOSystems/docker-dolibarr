@@ -1,0 +1,10 @@
+#!/usr/local/bin/php
+<?php
+define('SYSLOG_FILE', '/dev/stdout');
+$argv = array(
+    1 => 'set',
+    2 => $_ENV['DOLIBARR_SETUP_LANG']
+);
+ob_start();
+require '/www/install/step2.php';
+ob_end_clean();
