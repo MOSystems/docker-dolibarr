@@ -27,9 +27,6 @@ RUN ln -s "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 COPY ./src/ /
 
-ENV DEBUG=false
-RUN if [ "$DEBUG" = "true" ]; then pecl install xdebug && docker-php-ext-enable xdebug; fi
-
 ENTRYPOINT [ "docker-entrypoint" ]
 CMD [ "php-fpm" ]
 
