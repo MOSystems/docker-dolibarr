@@ -2,13 +2,57 @@
 <?php
 define('SYSLOG_FILE', '/dev/stdout');
 chdir('/www/install');
-$argv = array(
-    1 => 'set',
-    2 => $_ENV['DOLIBARR_SETUP_LANG']
-);
+$_POST['action'] = 'set';
+$_POST['selectlang'] = $_ENV['DOLIBARR_SETUP_LANG'];
+$_POST['main_dir'] = '/www';
+$_POST['main_data_dir'] = '/documents';
+$_POST['main_url'] = $_ENV['DOLIBARR_MAIN_URL'];
+$_POST['db_user_root'] = '';
+$_POST['db_pass_root'] = '';
+$_POST['db_type'] = 'mysqli';
+$_POST['db_host'] = $_ENV['DOLIBARR_DB_HOST'];
+$_POST['db_name'] = $_ENV['DOLIBARR_DB_NAME'];
+$_POST['db_user'] = $_ENV['DOLIBARR_DB_USER'];
+$_POST['db_pass'] = $_ENV['DOLIBARR_DB_PASS'];
+$_POST['db_port'] = $_ENV['DOLIBARR_DB_PORT'];
+$_POST['db_prefix'] = '';
+$_POST['db_create_database'] = '';
+$_POST['db_create_user'] = '';
+$_POST['main_force_https'] = $_ENV['DOLIBARR_FORCE_HTTPS'];
+$_POST['main_use_alt_dir'] = 'on';
+$_POST['main_alt_dir_name'] = 'custom';
+
 ob_start();
 require './step1.php';
 ob_end_clean();
+// Change generated conffile to suit our needs
+$conffile_original = $conffile.'.original';
+copy($conffile, $conffile_original);
+$fp_conf_original = fopen($conffile_original, 'r');
+$fp_conf = fopen($conffile, 'w');
+while(!feof($fp_conf_original)) {
+    $line = fgets($fp_conf_original);
+    if (preg_match('/^\$dolibarr_main_db_pass/', $line)) {
+        $line = '$dolibarr_main_db_pass=$_ENV[\'DOLIBARR_DB_PASS\'];'.PHP_EOL;
+    }
+    if (preg_match('/^\$dolibarr_main_authentication/', $line)) {
+        $line = '$dolibarr_main_authentication=!empty($_ENV[\'DOLIBARR_AUTH\'])?$_ENV[\'DOLIBARR_AUTH\']:\'dolibarr\''.PHP_EOL;
+    }
+    fputs($fp_conf, $line);
+}
+fclose($fp_conf_original);
+// Add LDAP configuration
+//fputs($fp_conf, ''.PHP_EOL);
+fclose($fp_conf);
+
+$_POST['login'] = !empty($_ENV['DOLIBARR_ADMIN_USER']) ? $_ENV['DOLIBARR_ADMIN_USER'] : 'admin';
+$_POST['pass'] = $_POST['pass_verif'] = $_ENV['DOLIBARR_ADMIN_PASS'];
+$_POST['installlock'] = 1;
 ob_start();
 require './step2.php';
+ob_end_clean();
+// There is no step3.php in dolibarr
+// step4.php is just a form, no need to run
+ob_start();
+require './step5.php';
 ob_end_clean();

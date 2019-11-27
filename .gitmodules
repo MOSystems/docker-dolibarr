@@ -1,3 +1,4 @@
 [submodule "vendor/dolibarr"]
 	path = vendor/dolibarr
 	url = https://github.com/Dolibarr/dolibarr.git
+	shallow = true
