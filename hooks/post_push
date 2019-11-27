@@ -1,0 +1,14 @@
+#!/bin/bash
+tags=(${DOLIBARR_VERSION%%.*} ${DOLIBARR_VERSION%.*} $DOLIBARR_VERSION)
+if [ "$DEBUG" != "true" ]; then
+    tags+=('latest')
+else
+    tags+=('debug')
+fi
+for tag in $tags; do
+    if [ "$DEBUG" = "true" ] && [ "$tag" != "debug" ]; then
+        tag="${tag}-debug"
+    fi
+    docker tag $IMAGE_NAME "$DOCKER_REPO:$tag"
+    docker push "$DOCKER_REPO:$tag"
+done
