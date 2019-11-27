@@ -1,9 +1,9 @@
-#!/bin/bash
-tags=(${DOLIBARR_VERSION%%.*} ${DOLIBARR_VERSION%.*} $DOLIBARR_VERSION)
+#!/bin/bash -x
+tags=("${DOLIBARR_VERSION%%.*}" "${DOLIBARR_VERSION%.*}" "$DOLIBARR_VERSION")
 for tag in $tags; do
-    if [ "$DEBUG" = "true" ] && [ "$tag" != "debug" ]; then
+    if [ "$DOCKER_TAG" = "debug" ]; then
         tag="${tag}-debug"
     fi
-    docker tag $IMAGE_NAME "$DOCKER_REPO:$tag"
+    docker tag "$IMAGE_NAME" "$DOCKER_REPO:$tag"
     docker push "$DOCKER_REPO:$tag"
 done
