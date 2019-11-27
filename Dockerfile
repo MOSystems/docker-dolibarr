@@ -44,7 +44,7 @@ RUN mkdir /documents && chown www-data:www-data /documents \
 ARG debug=false
 RUN if [ "$debug" = "true" ]; then pecl install xdebug && docker-php-ext-enable xdebug; fi
 
-COPY src/docker-entrypoint /usr/local/bin/
+COPY ./src/ /
 
 ENTRYPOINT [ "docker-entrypoint" ]
 CMD [ "php-fpm" ]

@@ -7,4 +7,8 @@ if [ -d "$DIR" ]; then
     /bin/run-parts --verbose "$DIR"
 fi
 
+if [ ! -e "/documents/install.lock" ]; then
+    dolibarr-install
+fi
+
 exec docker-php-entrypoint "$@"
