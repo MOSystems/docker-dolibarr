@@ -1,6 +1,8 @@
 #!/bin/bash -x
+DOLIBARR_VERSION=$(git -C vendor/dolibarr tag -l --points-at HEAD)
 tags=("${DOLIBARR_VERSION%%.*}" "${DOLIBARR_VERSION%.*}" "$DOLIBARR_VERSION")
 for tag in $tags; do
+    echo $tag
     if [ "$DOCKER_TAG" = "debug" ]; then
         tag="${tag}-debug"
     fi
