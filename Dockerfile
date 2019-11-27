@@ -26,6 +26,8 @@ RUN docker-php-ext-install -j$(nproc) \
 RUN ln -s "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 COPY ./src/ /
+COPY --chown=www-data:www-data ./vendor/dolibarr/htdocs/ /www/
+COPY --chown=www-data:www-data ./vendor/dolibarr/scripts /scripts/
 
 ENTRYPOINT [ "docker-entrypoint" ]
 CMD [ "php-fpm" ]
