@@ -1,8 +1,8 @@
 #!/bin/bash -x
-docker push $IMAGE_NAME
-docker push "$DOCKER_REPO:debug"
 DOLIBARR_VERSION=$(git -C vendor/dolibarr tag -l --points-at HEAD)
 docker tag $IMAGE_NAME "$DOCKER_REPO:$DOLIBARR_VERSION"
-docker push "$DOCKER_REPO:$DOLIBARR_VERSION"
 docker tag "$DOCKER_REPO:debug" "$DOCKER_REPO:$DOLIBARR_VERSION-debug"
+docker push $IMAGE_NAME
+docker push "$DOCKER_REPO:$DOLIBARR_VERSION"
+docker push "$DOCKER_REPO:debug"
 docker push "$DOCKER_REPO:$DOLIBARR_VERSION-debug"
