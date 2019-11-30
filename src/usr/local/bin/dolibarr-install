@@ -1,6 +1,15 @@
 #!/usr/local/bin/php
 <?php
 
+function custom_error_handler(int $errno , string $errstr , string $errfile , int $errline , array $errcontext) {
+    if (error_reporting() === 0) return FALSE;
+    if ($errno == E_WARNING) {
+        throw new ErrorException($errstr, $errno);
+    }
+}
+
+set_error_handler('custom_error_handler');
+
 global $conffile;
 
 define('SYSLOG_FILE', 'php://stdout');
@@ -10,11 +19,16 @@ chdir('/www/install');
 $_POST['action'] = 'set';
 $_POST['selectlang'] = $_SERVER['DOLIBARR_SETUP_LANG'];
 
-switch ($argv[1]) {
-    case '':
-        passthru($argv[0].' step1');
-        passthru($argv[0].' step2');
-        passthru($argv[0].' step5');
+$step = isset($argv[1]) ? $argv[1] : 'install';
+
+switch ($step) {
+    case 'install':
+        passthru($argv[0].' step1', $err);
+        if ($err !== 0) exit($err);
+        passthru($argv[0].' step2', $err);
+        if ($err !== 0) exit($err);
+        passthru($argv[0].' step5', $err);
+        if ($err !== 0) exit($err);
         break;
 
     case 'step1':
@@ -45,8 +59,11 @@ switch ($argv[1]) {
         global $conffile,$conffiletoshow,$conffiletoshowshort;
         
         ob_start();
-        require './step1.php';
-        ob_end_clean();
+        try {
+            require './step1.php';
+        } finally {
+            ob_end_clean();
+        }
 
         // fix_conffile
         $options = array(
@@ -93,8 +110,11 @@ switch ($argv[1]) {
         global $conf,$langs;
     
         ob_start();
-        require './step2.php';
-        ob_end_clean();
+        try {
+            require './step2.php';
+        } finally {
+            ob_end_clean();
+        }
         break;
 
     case 'step5':
@@ -105,8 +125,11 @@ switch ($argv[1]) {
         global $conf,$langs;
     
         ob_start();
-        require './step5.php';
-        ob_end_clean();
+        try {
+            require './step5.php';
+        } finally {
+            ob_end_clean();
+        }
         break;
     
     default:
