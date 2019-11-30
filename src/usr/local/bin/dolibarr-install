@@ -3,9 +3,9 @@
 
 function custom_error_handler(int $errno , string $errstr , string $errfile , int $errline , array $errcontext) {
     if (error_reporting() === 0) return FALSE;
-    if ($errno == E_WARNING) {
-        throw new ErrorException($errstr, $errno);
-    }
+    fputs(STDERR, "ERROR\t$errstr in $errfile:$errline".PHP_EOL);
+    ob_end_clean();
+    exit(1);
 }
 
 set_error_handler('custom_error_handler');
@@ -34,7 +34,7 @@ switch ($step) {
     case 'step1':
         $_POST['main_dir'] = '/www';
         $_POST['main_data_dir'] = '/documents';
-        $_POST['main_url'] = $_SERVER['DOLIBARR_MAIN_URL'];
+        $_POST['main_url'] = $_SERVER['DOLIBARR_MAIN_URL'] ?? '';
         $_POST['db_user_root'] = '';
         $_POST['db_pass_root'] = '';
         $_POST['db_type'] = 'mysqli';
@@ -42,11 +42,11 @@ switch ($step) {
         $_POST['db_name'] = $_SERVER['DOLIBARR_DB_NAME'];
         $_POST['db_user'] = $_SERVER['DOLIBARR_DB_USER'];
         $_POST['db_pass'] = $_SERVER['DOLIBARR_DB_PASS'];
-        $_POST['db_port'] = $_SERVER['DOLIBARR_DB_PORT'];
+        $_POST['db_port'] = $_SERVER['DOLIBARR_DB_PORT'] ?? '3306';
         $_POST['db_prefix'] = '';
         $_POST['db_create_database'] = '';
         $_POST['db_create_user'] = '';
-        $_POST['main_force_https'] = (int) (bool) $_SERVER['DOLIBARR_FORCE_HTTPS'];
+        $_POST['main_force_https'] = (int) (bool) ($_SERVER['DOLIBARR_FORCE_HTTPS'] ?? 0);
         $_POST['main_use_alt_dir'] = 'on';
         $_POST['main_alt_dir_name'] = 'custom';
 
@@ -59,24 +59,21 @@ switch ($step) {
         global $conffile,$conffiletoshow,$conffiletoshowshort;
         
         ob_start();
-        try {
-            require './step1.php';
-        } finally {
-            ob_end_clean();
-        }
+        require './step1.php';
+        ob_end_clean();
 
         // fix_conffile
         $options = array(
-            'dolibarr_main_url_root'             => '$_SERVER["DOLIBARR_MAIN_URL"]',       
+            'dolibarr_main_url_root'             => '$_SERVER["DOLIBARR_MAIN_URL"] ?? ""',       
             'dolibarr_main_db_host'              => '$_SERVER["DOLIBARR_DB_HOST"]',
             'dolibarr_main_db_port'              => '$_SERVER["DOLIBARR_DB_PORT"]',
             'dolibarr_main_db_name'              => '$_SERVER["DOLIBARR_DB_NAME"]',
             'dolibarr_main_db_user'              => '$_SERVER["DOLIBARR_DB_USER"]',
             'dolibarr_main_db_pass'              => '$_SERVER["DOLIBARR_DB_PASS"]',
-            'dolibarr_main_authentication'       => '$_SERVER["DOLIBARR_AUTH"] ?: "dolibarr"',
-            'dolibarr_main_prod'                 => '(int) (bool) $_SERVER["DOLIBARR_PROD"]',
-            'dolibarr_main_force_https'          => '(int) (bool) $_SERVER["DOLIBARR_FORCE_HTTPS"]',
-            'dolibarr_nocsrfcheck'               => '(int) (bool) $_SERVER["DOLIBARR_NOCSRF_CHECK"]',
+            'dolibarr_main_authentication'       => '$_SERVER["DOLIBARR_AUTH"] ?? "dolibarr"',
+            'dolibarr_main_prod'                 => '(int) (bool) ($_SERVER["DOLIBARR_PROD"] ?? 0)',
+            'dolibarr_main_force_https'          => '(int) (bool) ($_SERVER["DOLIBARR_FORCE_HTTPS"] ?? 0)',
+            'dolibarr_nocsrfcheck'               => '(int) (bool) ($_SERVER["DOLIBARR_NOCSRF_CHECK"] ?? 0)',
         );
     
         $conffile_original = $conffile.'.original';
@@ -110,11 +107,8 @@ switch ($step) {
         global $conf,$langs;
     
         ob_start();
-        try {
-            require './step2.php';
-        } finally {
-            ob_end_clean();
-        }
+        require './step2.php';
+        ob_end_clean();
         break;
 
     case 'step5':
@@ -125,11 +119,8 @@ switch ($step) {
         global $conf,$langs;
     
         ob_start();
-        try {
-            require './step5.php';
-        } finally {
-            ob_end_clean();
-        }
+        require './step5.php';
+        ob_end_clean();
         break;
     
     default:
