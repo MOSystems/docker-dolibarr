@@ -28,7 +28,8 @@ RUN ln -s "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 COPY ./src/ /
 COPY --chown=www-data:www-data ./vendor/dolibarr/htdocs/ /www/
 COPY --chown=www-data:www-data ./vendor/dolibarr/scripts/ /scripts/
-RUN install -m 0750 -o www-data -g www-data -d /sessions
+RUN install -m 0750 -o www-data -g www-data -d /sessions && \
+    install -m 0750 -o www-data -g www-data -d /documents
 
 ENTRYPOINT [ "docker-entrypoint" ]
 CMD [ "php-fpm" ]
