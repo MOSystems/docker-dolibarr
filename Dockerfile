@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     libldap2-dev \
     # needed for sending emails
-    sendmail
+    sendmail \
+    gosu
 
 RUN docker-php-ext-install -j$(nproc) \
     # needed for mysql database
