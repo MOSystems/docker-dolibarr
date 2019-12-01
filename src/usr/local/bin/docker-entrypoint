@@ -8,7 +8,7 @@ if [ -d "$DIR" ]; then
 fi
 
 if [ ! -e "/documents/install.lock" ]; then
-    dolibarr-install
+    gosu www-data dolibarr-install
 fi
 
 exec docker-php-entrypoint "$@"
