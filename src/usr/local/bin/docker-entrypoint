@@ -11,4 +11,6 @@ if [ ! -e "/documents/install.lock" ]; then
     gosu www-data dolibarr-install
 fi
 
+gosu www-data dolibarr-install dbupdate
+
 exec docker-php-entrypoint "$@"
