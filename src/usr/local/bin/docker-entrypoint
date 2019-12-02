@@ -1,5 +1,48 @@
 #!/bin/sh
-set -e
+set -eo pipefail
+
+# logging functions
+dolibarr_log() {
+	local type="$1"; shift
+	printf '%s [%s] [Entrypoint]: %s\n' "$(date --rfc-3339=seconds)" "$type" "$*"
+}
+dolibarr_note() {
+	dolibarr_log Note "$@"
+}
+dolibarr_warn() {
+	dolibarr_log Warn "$@" >&2
+}
+dolibarr_error() {
+	dolibarr_log ERROR "$@" >&2
+	exit 1
+}
+
+# usage: file_env VAR [DEFAULT]
+#    ie: file_env 'XYZ_DB_PASSWORD' 'example'
+# (will allow for "$XYZ_DB_PASSWORD_FILE" to fill in the value of
+#  "$XYZ_DB_PASSWORD" from a file, especially for Docker's secrets feature)
+file_env() {
+	local var="$1"
+	local fileVar="${var}_FILE"
+	local def="${2:-}"
+	if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
+		mysql_error "Both $var and $fileVar are set (but are exclusive)"
+	fi
+	local val="$def"
+	if [ "${!var:-}" ]; then
+		val="${!var}"
+	elif [ "${!fileVar:-}" ]; then
+		val="$(< "${!fileVar}")"
+	fi
+	export "$var"="$val"
+	unset "$fileVar"
+}
+
+file_env 'DOLIBARR_DB_NAME'
+file_env 'DOLIBARR_DB_USER'
+file_env 'DOLIBARR_DB_PASS'
+file_env 'DOLIBARR_ADMIN_USER'
+file_env 'DOLIBARR_ADMIN_PASS'
 
 DIR=/docker-entrypoint.d
 
