@@ -129,10 +129,82 @@ switch ($step) {
         require './step5.php';
         ob_end_clean();
         break;
-    
+
+    case 'dbupdate':
+        require '../master.inc.php';
+        require '../core/lib/admin.lib.php';
+        $func_set_value = function($const, $value) {
+            global $db, $conf;
+            if (is_array($value[0])) {
+                $array = $value[0];
+                if (isset($value[1]) && array_key_exists($value[1], $array)) {
+                    $key = $value[1];
+                } elseif (array_key_exists("DOLIBARR_{$const}", $array)) {
+                    $key = "DOLIBARR_{$const}";
+                } else return TRUE;
+                $value = $array[$key];
+            }
+            if (is_null($value)) return TRUE;
+            return dolibarr_set_const($db, $const, $value, 'chaine', 0, '', $conf->entity);
+        };
+        // Set LDAP constants in database
+        $db->begin();
+        $options = [
+            'LDAP_SERVER_TYPE' => [$dolibarr_main_auth_ldap_servertype],
+            'LDAP_SERVER_PROTOCOLVERSION' => [$dolibarr_main_auth_ldap_version],
+            'LDAP_SERVER_HOST' => [isset($dolibarr_main_auth_ldap_host) ? explode(',', $dolibarr_main_auth_ldap_host) : NULL, 0],
+            'LDAP_SERVER_HOST_SLAVE' => [isset($dolibarr_main_auth_ldap_host) ? explode(',', $dolibarr_main_auth_ldap_host) : NULL, 1],
+            'LDAP_SERVER_PORT' => [$dolibarr_main_auth_ldap_port],
+            'LDAP_ADMIN_DN' => [$dolibarr_main_auth_ldap_admin_login],
+            'LDAP_ADMIN_PASS' => [$dolibarr_main_auth_ldap_admin_pass],
+            'LDAP_SERVER_DN' => [$_SERVER],
+            'LDAP_SERVER_USE_TLS' => [$_SERVER],
+            'LDAP_SYNCHRO_ACTIVE' => [$_SERVER],
+
+            'LDAP_USER_DN' => [$_SERVER],
+            'LDAP_USER_OBJECT_CLASS' => [$_SERVER],
+            'LDAP_FILTER_CONNECTION' => [$_SERVER],
+            'LDAP_FIELD_FULLNAME' => [$_SERVER],
+            'LDAP_FIELD_LOGIN' => [$_SERVER],
+            'LDAP_FIELD_LOGIN_SAMBA' => [$_SERVER],
+            'LDAP_FIELD_PASSWORD' => [$_SERVER],
+            'LDAP_FIELD_PASSWORD_CRYPTED' => [$_SERVER],
+            'LDAP_FIELD_NAME' => [$_SERVER],
+            'LDAP_FIELD_FIRSTNAME' => [$_SERVER],
+            'LDAP_FIELD_MAIL' => [$_SERVER],
+            'LDAP_FIELD_PHONE' => [$_SERVER],
+            'LDAP_FIELD_MOBILE' => [$_SERVER],
+            'LDAP_FIELD_SKYPE' => [$_SERVER],
+            'LDAP_FIELD_FAX' => [$_SERVER],
+            'LDAP_FIELD_COMPANY' => [$_SERVER],
+            'LDAP_FIELD_ADDRESS' => [$_SERVER],
+            'LDAP_FIELD_ZIP' => [$_SERVER],
+            'LDAP_FIELD_TOWN' => [$_SERVER],
+            'LDAP_FIELD_COUNTRY' => [$_SERVER],
+            'LDAP_FIELD_DESCRIPTION' => [$_SERVER],
+            'LDAP_FIELD_SID' => [$_SERVER],
+            'LDAP_FIELD_TITLE' => [$_SERVER],
+
+            'LDAP_KEY_USERS' => [$_SERVER],
+        ];
+        $errors = array_map($func_set_value, array_keys($options), $options);
+        $errors = array_reduce($errors, function($carry, $item){
+            return $carry + $item ? 0 : 1;
+        }, 0);
+
+        if ($errors === 0)
+		{
+            $db->commit();
+            echo 'Successfully updated the database';
+		}
+		else
+		{
+            $db->rollback();
+            trigger_error('Did not update constants in database', E_WARNING);
+		}
+
     default:
         echo 'Usage: '.$argv[0].'[step]';
-        echo '    step can be step1, step2 or step5';
-        echo '    if no step is specified all steps are executed in order';
+        echo '    step can be step1, step2, step5 or dbupdate';
         break;
 }
