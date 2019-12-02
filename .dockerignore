@@ -1,0 +1,6 @@
+**/.git
+**/.vscode
+stack.yml
+vendor/dolibarr
+!vendor/dolibarr/htdocs
+!vendor/dolibarr/scripts
