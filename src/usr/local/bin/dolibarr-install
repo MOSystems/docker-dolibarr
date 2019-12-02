@@ -17,7 +17,7 @@ define('SYSLOG_FILE', 'php://stdout');
 chdir('/www/install');
 
 $_POST['action'] = 'set';
-$_POST['selectlang'] = $_SERVER['DOLIBARR_SETUP_LANG'];
+$_POST['selectlang'] = $_SERVER['DOLIBARR_SETUP_LANG'] ?? 'en_US';
 
 $step = isset($argv[1]) ? $argv[1] : 'install';
 
