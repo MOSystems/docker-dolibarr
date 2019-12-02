@@ -24,11 +24,11 @@ $step = isset($argv[1]) ? $argv[1] : 'install';
 switch ($step) {
     case 'install':
         passthru($argv[0].' step1', $err);
-        if ($err !== 0) exit($err);
+        if ($err !== 0) exit($err ?? 1);
         passthru($argv[0].' step2', $err);
-        if ($err !== 0) exit($err);
+        if ($err !== 0) exit($err ?? 1);
         passthru($argv[0].' step5', $err);
-        if ($err !== 0) exit($err);
+        if ($err !== 0) exit($err ?? 1);
         break;
 
     case 'step1':
