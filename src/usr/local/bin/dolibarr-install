@@ -32,23 +32,43 @@ switch ($step) {
         break;
 
     case 'step1':
+        $options = array(
+            'dolibarr_main_url_root'       =>               "\$_SERVER['DOLIBARR_MAIN_URL']     ?? ''",       
+            'dolibarr_main_db_host'        =>               "\$_SERVER['DOLIBARR_DB_HOST']",
+            'dolibarr_main_db_port'        =>               "\$_SERVER['DOLIBARR_DB_PORT']      ?? '3306'",
+            'dolibarr_main_db_name'        =>               "\$_SERVER['DOLIBARR_DB_NAME']",
+            'dolibarr_main_db_user'        =>               "\$_SERVER['DOLIBARR_DB_USER']",
+            'dolibarr_main_db_pass'        =>               "\$_SERVER['DOLIBARR_DB_PASS']",
+            'dolibarr_main_authentication' =>               "\$_SERVER['DOLIBARR_AUTH']         ?? 'dolibarr'",
+            'dolibarr_main_prod'           => "(int) (bool) (\$_SERVER['DOLIBARR_PROD']         ?? 0)",
+            'dolibarr_main_force_https'    => "(int) (bool) (\$_SERVER['DOLIBARR_FORCE_HTTPS']  ?? 0)",
+            'dolibarr_nocsrfcheck'         => "(int) (bool) (\$_SERVER['DOLIBARR_NOCSRF_CHECK'] ?? 0)",
+        );
+
+        function get_option($key) {
+            global $options;
+            return eval("return {$options[$key]};");
+        }
+
         $_POST['main_dir'] = '/www';
         $_POST['main_data_dir'] = '/documents';
-        $_POST['main_url'] = $_SERVER['DOLIBARR_MAIN_URL'] ?? '';
+        $_POST['main_url'] = get_option('dolibarr_main_url_root');
         $_POST['db_user_root'] = '';
         $_POST['db_pass_root'] = '';
         $_POST['db_type'] = 'mysqli';
-        $_POST['db_host'] = $_SERVER['DOLIBARR_DB_HOST'];
-        $_POST['db_name'] = $_SERVER['DOLIBARR_DB_NAME'];
-        $_POST['db_user'] = $_SERVER['DOLIBARR_DB_USER'];
-        $_POST['db_pass'] = $_SERVER['DOLIBARR_DB_PASS'];
-        $_POST['db_port'] = $_SERVER['DOLIBARR_DB_PORT'] ?? '3306';
+        $_POST['db_host'] = get_option('dolibarr_main_db_host');
+        $_POST['db_name'] = get_option('dolibarr_main_db_name');
+        $_POST['db_user'] = get_option('dolibarr_main_db_user');
+        $_POST['db_pass'] = get_option('dolibarr_main_db_pass');
+        $_POST['db_port'] = get_option('dolibarr_main_db_port');
         $_POST['db_prefix'] = '';
         $_POST['db_create_database'] = '';
         $_POST['db_create_user'] = '';
-        $_POST['main_force_https'] = (int) (bool) ($_SERVER['DOLIBARR_FORCE_HTTPS'] ?? 0);
+        $_POST['main_force_https'] = get_option('dolibarr_main_force_https');
         $_POST['main_use_alt_dir'] = 'on';
         $_POST['main_alt_dir_name'] = 'custom';
+
+        global $db;
 
         global $conf,$langs;
         global $main_url,$main_dir,$main_data_dir,$main_force_https,$main_use_alt_dir,$main_alt_dir_name,$main_db_prefix;
@@ -63,19 +83,6 @@ switch ($step) {
         ob_end_clean();
 
         // fix_conffile
-        $options = array(
-            'dolibarr_main_url_root'             => '$_SERVER["DOLIBARR_MAIN_URL"] ?? ""',       
-            'dolibarr_main_db_host'              => '$_SERVER["DOLIBARR_DB_HOST"]',
-            'dolibarr_main_db_port'              => '$_SERVER["DOLIBARR_DB_PORT"]',
-            'dolibarr_main_db_name'              => '$_SERVER["DOLIBARR_DB_NAME"]',
-            'dolibarr_main_db_user'              => '$_SERVER["DOLIBARR_DB_USER"]',
-            'dolibarr_main_db_pass'              => '$_SERVER["DOLIBARR_DB_PASS"]',
-            'dolibarr_main_authentication'       => '$_SERVER["DOLIBARR_AUTH"] ?? "dolibarr"',
-            'dolibarr_main_prod'                 => '(int) (bool) ($_SERVER["DOLIBARR_PROD"] ?? 0)',
-            'dolibarr_main_force_https'          => '(int) (bool) ($_SERVER["DOLIBARR_FORCE_HTTPS"] ?? 0)',
-            'dolibarr_nocsrfcheck'               => '(int) (bool) ($_SERVER["DOLIBARR_NOCSRF_CHECK"] ?? 0)',
-        );
-    
         $conffile_original = $conffile.'.original';
         copy($conffile, $conffile_original);
         $fp_conf_original = fopen($conffile_original, 'r');
@@ -83,23 +90,23 @@ switch ($step) {
         while(!feof($fp_conf_original)) {
             $line = fgets($fp_conf_original);
             if (preg_match('/^\$('.join('|', array_keys($options)).')\s*=/', $line, $matches)) {
-                $line = '$'.$matches[1].'='.$options[$matches[1]].';'.PHP_EOL;
+                $key = $matches[1];
+                $line = "\${$key}={$options[$key]};".PHP_EOL;
             }
             fputs($fp_conf, $line);
         }
         fclose($fp_conf_original);
         // Add LDAP configuration
-        // fputs($fp_conf, ''.PHP_EOL);
-        // dolibarr_main_auth_ldap_host='127.0.0.1';                 
-        // dolibarr_main_auth_ldap_port='389';                       
-        // dolibarr_main_auth_ldap_version='3';
-        // dolibarr_main_auth_ldap_servertype='openldap';			  
-        // dolibarr_main_auth_ldap_login_attribute='loginfield';	  
-        // dolibarr_main_auth_ldap_dn='ou=users,dc=my-domain,dc=com';
-        // dolibarr_main_auth_ldap_filter = '';                      
-        // dolibarr_main_auth_ldap_admin_login='';					  
-        // dolibarr_main_auth_ldap_admin_pass='';					  
-        // dolibarr_main_auth_ldap_debug='false';
+        fputs($fp_conf, "\$dolibarr_main_auth_ldap_host=\$_SERVER['DOLIBARR_LDAP_HOST'] ?? NULL;".PHP_EOL);
+        fputs($fp_conf, "\$dolibarr_main_auth_ldap_port=\$_SERVER['DOLIBARR_LDAP_PORT'] ?? NULL;".PHP_EOL);
+        fputs($fp_conf, "\$dolibarr_main_auth_ldap_version=\$_SERVER['DOLIBARR_LDAP_VERSION'] ?? NULL;".PHP_EOL);
+        fputs($fp_conf, "\$dolibarr_main_auth_ldap_servertype=\$_SERVER['DOLIBARR_LDAP_SERVER_TYPE'] ?? NULL;".PHP_EOL);
+        fputs($fp_conf, "\$dolibarr_main_auth_ldap_login_attribute=\$_SERVER['DOLIBARR_LDAP_LOGIN_ATTR'] ?? NULL;".PHP_EOL);
+        fputs($fp_conf, "\$dolibarr_main_auth_ldap_dn=\$_SERVER['DOLIBARR_LDAP_DN'] ?? NULL;".PHP_EOL);
+        fputs($fp_conf, "\$dolibarr_main_auth_ldap_filter=\$_SERVER['DOLIBARR_LDAP_FILTER'] ?? NULL;".PHP_EOL);
+        fputs($fp_conf, "\$dolibarr_main_auth_ldap_admin_login=\$_SERVER['DOLIBARR_LDAP_ADMIN_LOGIN'] ?? NULL;".PHP_EOL);
+        fputs($fp_conf, "\$dolibarr_main_auth_ldap_admin_pass=\$_SERVER['DOLIBARR_LDAP_ADMIN_PASS'] ?? NULL;".PHP_EOL);
+        fputs($fp_conf, "\$dolibarr_main_auth_ldap_debug=\$_SERVER['DOLIBARR_LDAP_DEBUG'] ?? 'false';".PHP_EOL);
         fclose($fp_conf);
         break;
 
