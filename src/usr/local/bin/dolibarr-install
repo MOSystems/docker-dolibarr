@@ -1,9 +1,25 @@
 #!/usr/local/bin/php
 <?php
 
+function install_log($message, $level) {
+    $levels = [
+        LOG_EMERG => 'EMERG',
+        LOG_ALERT => 'ALERT',
+        LOG_CRIT => 'CRIT',
+        LOG_ERR => 'ERR',
+        LOG_WARNING => 'WARNING',
+        LOG_NOTICE => 'NOTICE',
+        LOG_INFO => 'INFO',
+        LOG_DEBUG => 'DEBUG',
+    ];
+    $stream = $level <= LOG_WARNING ? STDERR : STDOUT;
+    $timestamp = date(DATE_RFC3339);
+    fputs($stream, "$timestamp {$levels[$level]}: $message".PHP_EOL);
+}
+
 function custom_error_handler(int $errno , string $errstr , string $errfile , int $errline , array $errcontext) {
     if (error_reporting() === 0) return FALSE;
-    fputs(STDERR, "ERROR\t$errstr in $errfile:$errline".PHP_EOL);
+    install_log("$errstr in $errfile:$errline", LOG_ERR);
     ob_end_clean();
     exit(1);
 }
@@ -23,12 +39,14 @@ $step = isset($argv[1]) ? $argv[1] : 'install';
 
 switch ($step) {
     case 'install':
-        passthru($argv[0].' step1', $err);
-        if ($err !== 0) exit($err ?? 1);
-        passthru($argv[0].' step2', $err);
-        if ($err !== 0) exit($err ?? 1);
-        passthru($argv[0].' step5', $err);
-        if ($err !== 0) exit($err ?? 1);
+        function run_step($step){
+            passthru("{$argv[0]} $step", $err);
+            if ($err !== 0) exit($err ?? 1);
+        }
+
+        run_step('step1');
+        run_step('step2');
+        run_step('step5');
         break;
 
     case 'step1':
@@ -143,6 +161,8 @@ switch ($step) {
                     $key = "DOLIBARR_{$const}";
                 } else return TRUE;
                 $value = $array[$key];
+            } else {
+                $value = $value[0];
             }
             if (is_null($value)) return TRUE;
             return dolibarr_set_const($db, $const, $value, 'chaine', 0, '', $conf->entity);
@@ -195,13 +215,14 @@ switch ($step) {
         if ($errors === 0)
 		{
             $db->commit();
-            echo 'Successfully updated the database';
+            install_log('Successfully updated the database', LOG_INFO);
 		}
 		else
 		{
             $db->rollback();
             trigger_error('Did not update constants in database', E_WARNING);
-		}
+        }
+        break;
 
     default:
         echo 'Usage: '.$argv[0].'[step]';
