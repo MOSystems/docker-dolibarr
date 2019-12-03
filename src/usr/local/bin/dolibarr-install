@@ -41,6 +41,7 @@ $step = isset($argv[1]) ? $argv[1] : 'install';
 switch ($step) {
     case 'install':
         function run_step($step){
+            global $argv;
             passthru("{$argv[0]} $step", $err);
             if ($err !== 0) exit($err ?? 1);
         }
