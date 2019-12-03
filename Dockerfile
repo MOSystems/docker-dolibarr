@@ -29,7 +29,8 @@ RUN ln -s "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 COPY ./src/ /
 COPY --chown=www-data:www-data ./vendor/dolibarr/htdocs/ /www/
 COPY --chown=www-data:www-data ./vendor/dolibarr/scripts/ /scripts/
-RUN install -m 0750 -o www-data -g www-data -d /sessions && \
+RUN touch /www/conf/conf.php && chown www-data:www-data /www/conf/conf.php && \
+    install -m 0750 -o www-data -g www-data -d /sessions && \
     install -m 0750 -o www-data -g www-data -d /documents
 
 ENTRYPOINT [ "docker-entrypoint" ]
