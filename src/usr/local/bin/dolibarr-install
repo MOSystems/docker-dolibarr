@@ -19,6 +19,7 @@ function install_log($message, $level) {
 
 function custom_error_handler(int $errno , string $errstr , string $errfile , int $errline , array $errcontext) {
     if (error_reporting() === 0) return FALSE;
+    error_reporting(0); // Do not throw errors during error handling
     install_log("$errstr in $errfile:$errline", LOG_ERR);
     ob_end_clean();
     exit(1);
