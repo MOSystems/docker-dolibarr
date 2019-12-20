@@ -43,6 +43,7 @@ file_env 'DOLIBARR_DB_USER'
 file_env 'DOLIBARR_DB_PASS'
 file_env 'DOLIBARR_ADMIN_USER'
 file_env 'DOLIBARR_ADMIN_PASS'
+file_env 'DOLIBARR_LDAP_ADMIN_PASS'
 
 DIR=/docker-entrypoint.d
 
